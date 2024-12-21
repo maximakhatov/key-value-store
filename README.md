@@ -1,0 +1,1 @@
+Simple Key-Value storage, made for learning Go.
