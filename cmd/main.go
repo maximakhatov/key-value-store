@@ -6,13 +6,19 @@ import (
 	"net"
 	"os"
 	"strconv"
+
+	"github.com/spf13/viper"
 )
 
-func main() {
-	port := 6379     // TODO read from config
-	buffSize := 1024 // TODO read from config
+type Config struct {
+	Port       int `mapstructure:"KV_PORT"`
+	BufferSize int `mapstructure:"KV_BUFFER_SIZE"`
+}
 
-	listener, err := net.Listen("tcp", strconv.Itoa(port))
+func main() {
+	config := readConfig()
+
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(config.Port))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -28,7 +34,7 @@ func main() {
 
 	for {
 		// TODO add logging
-		buf := make([]byte, buffSize)
+		buf := make([]byte, config.BufferSize)
 
 		_, err = conn.Read(buf)
 		if err != nil {
@@ -41,4 +47,20 @@ func main() {
 
 		conn.Write([]byte("+OK\r\n"))
 	}
+}
+
+func readConfig() *Config {
+	var config Config
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AutomaticEnv()
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("fatal error reading config file: %w", err))
+	}
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		panic(fmt.Errorf("fatal error unmarshalling config: %w", err))
+	}
+	return &config
 }
