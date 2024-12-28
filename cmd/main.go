@@ -2,19 +2,21 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net"
-	"os"
 	"strconv"
+	"strings"
+
+	"github.com/maximakhatov/key-value-store/internal/handlers"
+	"github.com/maximakhatov/key-value-store/internal/resp"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Port       int `mapstructure:"KV_PORT"`
-	BufferSize int `mapstructure:"KV_BUFFER_SIZE"`
+	Port int `mapstructure:"KV_PORT"`
 }
 
+// TODO replace fmt with logging
 func main() {
 	config := readConfig()
 
@@ -23,29 +25,48 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("Listening on port", config.Port)
 
 	conn, err := listener.Accept()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("Received new connection")
 
 	defer conn.Close()
 
 	for {
-		// TODO add logging
-		buf := make([]byte, config.BufferSize)
-
-		_, err = conn.Read(buf)
+		r := resp.NewResp(conn)
+		value, err := r.Read()
 		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Println("error reading from client:", err.Error())
-			os.Exit(1)
+			fmt.Println("Error reading from client:", err.Error())
+			return
 		}
 
-		conn.Write([]byte("+OK\r\n"))
+		if value.Type != resp.ARRAY {
+			fmt.Println("Invalid request, expected array")
+			continue
+		}
+
+		if len(value.Array) == 0 {
+			fmt.Println("Invalid request, expected array length > 0")
+			continue
+		}
+
+		command := strings.ToUpper(value.Array[0].Bulk)
+		args := value.Array[1:]
+
+		writer := resp.NewWriter(conn)
+		handler, ok := handlers.Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			writer.Write(resp.Value{Type: resp.STRING, Str: ""})
+			continue
+		}
+
+		result := handler(args)
+		writer.Write(result)
 	}
 }
 

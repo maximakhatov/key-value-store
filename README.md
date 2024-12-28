@@ -1,4 +1,4 @@
-Simple Key-Value storage, made for learning Go.
+Simple Key-Value storage, made to learn Go (and a little Vim).
 
-[Build Redis from scratch](https://www.build-redis-from-scratch.dev) was used as a reference. My changes:
+[Build Redis from scratch](https://www.build-redis-from-scratch.dev) was used as a reference. List of my changes:
 - Env configuration support (with Viper module)
