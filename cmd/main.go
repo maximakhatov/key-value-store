@@ -70,7 +70,7 @@ func main() {
 	}
 }
 
-func readConfig() *Config {
+func readConfig() Config {
 	var config Config
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
@@ -83,5 +83,5 @@ func readConfig() *Config {
 	if err != nil {
 		panic(fmt.Errorf("fatal error unmarshalling config: %w", err))
 	}
-	return &config
+	return config
 }
