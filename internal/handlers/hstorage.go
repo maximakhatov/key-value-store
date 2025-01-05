@@ -9,7 +9,7 @@ import (
 var hstorage = map[string]map[string]string{}
 var hstorageMutex = sync.RWMutex{}
 
-func HSet(args []resp.Value) resp.Value {
+func hset(args []resp.Value) resp.Value {
 	if len(args) != 3 {
 		return resp.Value{Type: resp.ERROR, Str: "ERR wrong number of arguments for 'hset' command"}
 	}
@@ -28,7 +28,7 @@ func HSet(args []resp.Value) resp.Value {
 	return resp.Value{Type: resp.STRING, Str: "OK"}
 }
 
-func HGet(args []resp.Value) resp.Value {
+func hget(args []resp.Value) resp.Value {
 	if len(args) != 2 {
 		return resp.Value{Type: resp.ERROR, Str: "ERR wrong number of arguments for 'hget' command"}
 	}

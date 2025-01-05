@@ -16,7 +16,6 @@ type Config struct {
 	Port int `mapstructure:"KV_PORT"`
 }
 
-// TODO replace fmt with logging
 func main() {
 	config := readConfig()
 
@@ -25,19 +24,25 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer listener.Close()
 	fmt.Println("Listening on port", config.Port)
 
-	conn, err := listener.Accept()
-	if err != nil {
-		fmt.Println(err)
-		return
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println("Received new connection")
+		go handleClient(conn)
 	}
-	fmt.Println("Received new connection")
+}
 
+func handleClient(conn net.Conn) {
 	defer conn.Close()
+	r := resp.NewResp(conn)
 
 	for {
-		r := resp.NewResp(conn)
 		value, err := r.Read()
 		if err != nil {
 			fmt.Println("Error reading from client:", err.Error())
@@ -66,7 +71,10 @@ func main() {
 		}
 
 		result := handler(args)
-		writer.Write(result)
+		err = writer.Write(result)
+		if err != nil {
+			fmt.Println("Error writing to client:", err.Error())
+		}
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 
 const (
 	ERROR   = '-'
-	NULL    = 'n'
+	NULL    = '0'
 	STRING  = '+'
 	INTEGER = ':'
 	BULK    = '$'
@@ -22,10 +22,10 @@ type Value struct {
 	Array []Value
 }
 
-type Resp struct {
+type RESP struct {
 	reader *bufio.Reader
 }
 
-func NewResp(reader io.Reader) *Resp {
-	return &Resp{reader: bufio.NewReader(reader)}
+func NewResp(reader io.Reader) *RESP {
+	return &RESP{reader: bufio.NewReader(reader)}
 }

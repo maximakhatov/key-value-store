@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (r *Resp) Read() (Value, error) {
+func (r *RESP) Read() (Value, error) {
 	_type, err := r.reader.ReadByte()
 
 	if err != nil {
@@ -17,13 +17,15 @@ func (r *Resp) Read() (Value, error) {
 		return r.readBulk()
 	case ARRAY:
 		return r.readArray()
+	case STRING:
+		return r.readString()
 	default:
 		fmt.Printf("Unknown type: %v", string(_type))
 		return Value{}, nil
 	}
 }
 
-func (r *Resp) readLine() (line []byte, n int, err error) {
+func (r *RESP) readLine() (line []byte, n int, err error) {
 	for {
 		b, err := r.reader.ReadByte()
 		if err != nil {
@@ -38,7 +40,7 @@ func (r *Resp) readLine() (line []byte, n int, err error) {
 	return line[:len(line)-2], n, nil
 }
 
-func (r *Resp) readInteger() (x int, n int, err error) {
+func (r *RESP) readInteger() (x int, n int, err error) {
 	line, n, err := r.readLine()
 	if err != nil {
 		return 0, 0, err
@@ -50,15 +52,18 @@ func (r *Resp) readInteger() (x int, n int, err error) {
 	return int(num), n, nil
 }
 
-func (r *Resp) readBulk() (Value, error) {
+func (r *RESP) readBulk() (Value, error) {
 	v := Value{}
-
-	v.Type = BULK
 
 	len, _, err := r.readInteger()
 	if err != nil {
 		return v, err
 	}
+	if len == -1 {
+		v.Type = NULL
+		return v, nil
+	}
+	v.Type = BULK
 
 	bulk := make([]byte, len)
 	r.reader.Read(bulk)
@@ -68,7 +73,7 @@ func (r *Resp) readBulk() (Value, error) {
 	return v, nil
 }
 
-func (r *Resp) readArray() (Value, error) {
+func (r *RESP) readArray() (Value, error) {
 	v := Value{}
 	v.Type = ARRAY
 
@@ -86,5 +91,15 @@ func (r *Resp) readArray() (Value, error) {
 		v.Array[i] = val
 	}
 
+	return v, nil
+}
+
+func (r *RESP) readString() (Value, error) {
+	v := Value{Type: STRING}
+	line, _, err := r.readLine()
+	if err != nil {
+		return v, err
+	}
+	v.Str = string(line)
 	return v, nil
 }
