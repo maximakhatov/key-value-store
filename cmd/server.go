@@ -40,10 +40,10 @@ func main() {
 
 func handleClient(conn net.Conn) {
 	defer conn.Close()
-	r := resp.NewResp(conn)
+	protocol := resp.NewProtocol(conn, conn)
 
 	for {
-		value, err := r.Read()
+		value, err := protocol.Read()
 		if err != nil {
 			fmt.Println("Error reading from client:", err.Error())
 			return
@@ -62,16 +62,15 @@ func handleClient(conn net.Conn) {
 		command := strings.ToUpper(value.Array[0].Bulk)
 		args := value.Array[1:]
 
-		writer := resp.NewWriter(conn)
 		handler, ok := handlers.Handlers[command]
 		if !ok {
 			fmt.Println("Invalid command: ", command)
-			writer.Write(resp.Value{Type: resp.STRING, Str: ""})
+			protocol.Write(resp.Value{Type: resp.STRING, Str: ""})
 			continue
 		}
 
 		result := handler(args)
-		err = writer.Write(result)
+		err = protocol.Write(result)
 		if err != nil {
 			fmt.Println("Error writing to client:", err.Error())
 		}

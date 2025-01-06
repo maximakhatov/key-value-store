@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func (r *RESP) Read() (Value, error) {
+func (r *Protocol) Read() (Value, error) {
 	_type, err := r.reader.ReadByte()
 
 	if err != nil {
@@ -25,7 +25,7 @@ func (r *RESP) Read() (Value, error) {
 	}
 }
 
-func (r *RESP) readLine() (line []byte, n int, err error) {
+func (r *Protocol) readLine() (line []byte, n int, err error) {
 	for {
 		b, err := r.reader.ReadByte()
 		if err != nil {
@@ -40,7 +40,7 @@ func (r *RESP) readLine() (line []byte, n int, err error) {
 	return line[:len(line)-2], n, nil
 }
 
-func (r *RESP) readInteger() (x int, n int, err error) {
+func (r *Protocol) readInteger() (x int, n int, err error) {
 	line, n, err := r.readLine()
 	if err != nil {
 		return 0, 0, err
@@ -52,7 +52,7 @@ func (r *RESP) readInteger() (x int, n int, err error) {
 	return int(num), n, nil
 }
 
-func (r *RESP) readBulk() (Value, error) {
+func (r *Protocol) readBulk() (Value, error) {
 	v := Value{}
 
 	len, _, err := r.readInteger()
@@ -73,7 +73,7 @@ func (r *RESP) readBulk() (Value, error) {
 	return v, nil
 }
 
-func (r *RESP) readArray() (Value, error) {
+func (r *Protocol) readArray() (Value, error) {
 	v := Value{}
 	v.Type = ARRAY
 
@@ -94,7 +94,7 @@ func (r *RESP) readArray() (Value, error) {
 	return v, nil
 }
 
-func (r *RESP) readString() (Value, error) {
+func (r *Protocol) readString() (Value, error) {
 	v := Value{Type: STRING}
 	line, _, err := r.readLine()
 	if err != nil {

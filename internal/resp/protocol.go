@@ -22,10 +22,11 @@ type Value struct {
 	Array []Value
 }
 
-type RESP struct {
+type Protocol struct {
 	reader *bufio.Reader
+	writer io.Writer
 }
 
-func NewResp(reader io.Reader) *RESP {
-	return &RESP{reader: bufio.NewReader(reader)}
+func NewProtocol(reader io.Reader, writer io.Writer) *Protocol {
+	return &Protocol{reader: bufio.NewReader(reader), writer: writer}
 }

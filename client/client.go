@@ -8,9 +8,8 @@ import (
 )
 
 type Client struct {
-	conn   *net.Conn
-	writer *resp.Writer
-	reader *resp.RESP
+	conn     *net.Conn
+	protocol *resp.Protocol
 }
 
 func New(addr string) (*Client, error) {
@@ -19,7 +18,7 @@ func New(addr string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{conn: &conn, writer: resp.NewWriter(conn), reader: resp.NewResp(conn)}, nil
+	return &Client{conn: &conn, protocol: resp.NewProtocol(conn, conn)}, nil
 }
 
 func (client *Client) Close() {
@@ -35,12 +34,12 @@ func (client *Client) Set(key, value string) error {
 			{Type: resp.BULK, Bulk: value},
 		},
 	}
-	err := client.writer.Write(command)
+	err := client.protocol.Write(command)
 	if err != nil {
 		return err
 	}
 
-	response, err := client.reader.Read()
+	response, err := client.protocol.Read()
 	if err != nil {
 		return err
 	}
@@ -58,12 +57,12 @@ func (client *Client) Get(key string) (result string, null bool, e error) {
 			{Type: resp.BULK, Bulk: key},
 		},
 	}
-	err := client.writer.Write(command)
+	err := client.protocol.Write(command)
 	if err != nil {
 		return "", false, err
 	}
 
-	response, err := client.reader.Read()
+	response, err := client.protocol.Read()
 	if err != nil {
 		return "", false, err
 	}

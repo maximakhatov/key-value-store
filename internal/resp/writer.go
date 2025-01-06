@@ -2,17 +2,8 @@ package resp
 
 import (
 	"fmt"
-	"io"
 	"strconv"
 )
-
-type Writer struct {
-	writer io.Writer
-}
-
-func NewWriter(w io.Writer) *Writer {
-	return &Writer{writer: w}
-}
 
 func (v Value) marshal() []byte {
 	switch v.Type {
@@ -79,7 +70,7 @@ func (v Value) marshallNull() []byte {
 	return []byte("$-1\r\n")
 }
 
-func (w *Writer) Write(v Value) error {
+func (w *Protocol) Write(v Value) error {
 	var bytes = v.marshal()
 
 	_, err := w.writer.Write(bytes)
