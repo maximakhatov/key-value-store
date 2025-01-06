@@ -1,11 +1,9 @@
-Simple Key-Value storage, made to learn Go and try some libraries.
+Simple Key-Value storage, made to try Go and some of its libraries.
 
-Based on [Build Redis from scratch](https://www.build-redis-from-scratch.dev). List of my improvements:
-- Project is structured
+Project is based on tutorial [Build Redis from scratch](https://www.build-redis-from-scratch.dev). List of my improvements:
+- Better project structure
 - Few minor optimizations
 - Env configuration support (with Viper module)
+- Logging (with Zerolog module)
 - Multiple connections support
-- Client for get/set operations and simple protocol test
-
-TODO: 
-- Logging (with metadata, like level and timestamp); configurable logging level
+- Client for get/set operations

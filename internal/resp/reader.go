@@ -1,8 +1,9 @@
 package resp
 
 import (
-	"fmt"
 	"strconv"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (r *Protocol) Read() (Value, error) {
@@ -20,7 +21,7 @@ func (r *Protocol) Read() (Value, error) {
 	case STRING:
 		return r.readString()
 	default:
-		fmt.Printf("Unknown type: %v", string(_type))
+		log.Error().Str("type", string(_type)).Msg("Unknown type")
 		return Value{}, nil
 	}
 }

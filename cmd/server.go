@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"strconv"
 	"strings"
@@ -9,31 +10,59 @@ import (
 	"github.com/maximakhatov/key-value-store/internal/handlers"
 	"github.com/maximakhatov/key-value-store/internal/resp"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Port int `mapstructure:"KV_PORT"`
+	Port     int    `mapstructure:"KV_PORT"`
+	LogLevel string `mapstructure:"LOG_LEVEL"`
+}
+
+var config Config
+
+func init() {
+	config = readConfig()
+
+	var zerologLogLevel zerolog.Level
+	switch strings.ToLower(config.LogLevel) {
+	case "trace":
+		zerologLogLevel = zerolog.TraceLevel
+	case "debug":
+		zerologLogLevel = zerolog.DebugLevel
+	case "info":
+		zerologLogLevel = zerolog.InfoLevel
+	case "warn":
+		zerologLogLevel = zerolog.WarnLevel
+	case "error":
+		zerologLogLevel = zerolog.ErrorLevel
+	case "fatal":
+		zerologLogLevel = zerolog.FatalLevel
+	case "panic":
+		zerologLogLevel = zerolog.PanicLevel
+	default:
+		zerologLogLevel = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(zerologLogLevel)
 }
 
 func main() {
-	config := readConfig()
-
 	listener, err := net.Listen("tcp", ":"+strconv.Itoa(config.Port))
 	if err != nil {
-		fmt.Println(err)
+		log.Err(err)
 		return
 	}
 	defer listener.Close()
-	fmt.Println("Listening on port", config.Port)
+	log.Info().Int("port", config.Port).Msg("Server started listening")
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println(err)
+			log.Err(err)
 			return
 		}
-		fmt.Println("Received new connection")
+		log.Info().Msg("Received new connection")
 		go handleClient(conn)
 	}
 }
@@ -45,17 +74,21 @@ func handleClient(conn net.Conn) {
 	for {
 		value, err := protocol.Read()
 		if err != nil {
-			fmt.Println("Error reading from client:", err.Error())
+			if err == io.EOF {
+				log.Info().Msg("Client disconnected")
+			} else {
+				log.Err(err).Msg("Error reading from client")
+			}
 			return
 		}
 
 		if value.Type != resp.ARRAY {
-			fmt.Println("Invalid request, expected array")
+			log.Warn().Msg("Invalid request, expected array")
 			continue
 		}
 
 		if len(value.Array) == 0 {
-			fmt.Println("Invalid request, expected array length > 0")
+			log.Warn().Msg("Invalid request, expected array length > 0")
 			continue
 		}
 
@@ -64,7 +97,7 @@ func handleClient(conn net.Conn) {
 
 		handler, ok := handlers.Handlers[command]
 		if !ok {
-			fmt.Println("Invalid command: ", command)
+			log.Warn().Str("command", command).Msg("Invalid command")
 			protocol.Write(resp.Value{Type: resp.STRING, Str: ""})
 			continue
 		}
@@ -72,7 +105,7 @@ func handleClient(conn net.Conn) {
 		result := handler(args)
 		err = protocol.Write(result)
 		if err != nil {
-			fmt.Println("Error writing to client:", err.Error())
+			log.Err(err).Msg("Error writing to client")
 		}
 	}
 }

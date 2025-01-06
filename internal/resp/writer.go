@@ -1,8 +1,9 @@
 package resp
 
 import (
-	"fmt"
 	"strconv"
+
+	"github.com/rs/zerolog/log"
 )
 
 func (v Value) marshal() []byte {
@@ -18,7 +19,7 @@ func (v Value) marshal() []byte {
 	case ERROR:
 		return v.marshallError()
 	default:
-		fmt.Println("Marshalling fail, unexpected type", v.Type)
+		log.Error().Str("type", string(v.Type)).Msg("Marshalling fail, unexpected type")
 		return []byte{}
 	}
 }
