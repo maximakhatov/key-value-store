@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	conn     *net.Conn
+	conn     net.Conn
 	protocol *resp.Protocol
 }
 
@@ -18,11 +18,11 @@ func New(addr string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{conn: &conn, protocol: resp.NewProtocol(conn, conn)}, nil
+	return &Client{conn: conn, protocol: resp.NewProtocol(conn, conn)}, nil
 }
 
 func (client *Client) Close() {
-	(*client.conn).Close()
+	client.conn.Close()
 }
 
 func (client *Client) Set(key, value string) error {
