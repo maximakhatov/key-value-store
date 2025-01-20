@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	client, err := client.New("localhost:6379")
+	client, err := client.NewClient("localhost:6379")
 	if err != nil {
 		panic(err)
 	}

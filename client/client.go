@@ -7,25 +7,25 @@ import (
 	"github.com/maximakhatov/key-value-store/internal/resp"
 )
 
-type Client struct {
+type client struct {
 	conn     net.Conn
 	protocol *resp.Protocol
 }
 
-func New(addr string) (*Client, error) {
+func NewClient(addr string) (*client, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{conn: conn, protocol: resp.NewProtocol(conn, conn)}, nil
+	return &client{conn: conn, protocol: resp.NewProtocol(conn, conn)}, nil
 }
 
-func (client *Client) Close() {
+func (client *client) Close() {
 	client.conn.Close()
 }
 
-func (client *Client) Set(key, value string) error {
+func (client *client) Set(key, value string) error {
 	command := resp.Value{
 		Type: resp.ARRAY,
 		Array: []resp.Value{
@@ -49,7 +49,7 @@ func (client *Client) Set(key, value string) error {
 	return nil
 }
 
-func (client *Client) Get(key string) (result string, null bool, e error) {
+func (client *client) Get(key string) (result string, null bool, e error) {
 	command := resp.Value{
 		Type: resp.ARRAY,
 		Array: []resp.Value{
