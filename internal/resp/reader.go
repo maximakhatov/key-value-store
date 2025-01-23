@@ -1,6 +1,7 @@
 package resp
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/rs/zerolog/log"
@@ -22,7 +23,7 @@ func (r *Protocol) Read() (Value, error) {
 		return r.readString()
 	default:
 		log.Error().Str("type", string(_type)).Msg("Unknown type")
-		return Value{}, nil
+		return Value{}, errors.New("unknown type")
 	}
 }
 

@@ -3,6 +3,7 @@ module github.com/maximakhatov/key-value-store
 go 1.23.3
 
 require (
+	github.com/go-test/deep v1.1.1
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/viper v1.19.0
 )

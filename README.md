@@ -7,3 +7,4 @@ Project is based on tutorial [Build Redis from scratch](https://www.build-redis-
 - Logging (with Zerolog module)
 - Multiple connections support
 - Client for get/set operations
+- A couple of tests to try `go test`
